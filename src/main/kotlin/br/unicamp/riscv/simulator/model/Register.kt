@@ -1,23 +1,20 @@
 package br.unicamp.riscv.simulator.model
 
+import java.lang.RuntimeException
+
 sealed class Register
 
 object PC : Register()
 data class XRegister(val id: Int) : Register() {
-    val name: String
-        get() {
-            // rv32IRegName (RV32IX 0) = "zero"
-            //rv32IRegName (RV32IX 1) = "ra"
-            //rv32IRegName (RV32IX 2) = "sp"
-            //rv32IRegName (RV32IX 3) = "gp"
-            //rv32IRegName (RV32IX 4) = "tp"
-            //rv32IRegName (RV32IX n)
-            //    | 5 <= n && n <= 7    = printf "t%d" (n - 5)
-            //    | 8 <= n && n <= 9    = printf "s%d" (n - 8)
-            //    | 10 <= n && n <= 17  = printf "a%d" (n - 10)
-            //    | 18 <= n && n <= 27  = printf "s%d" (n - 16)
-            //    | 28 <= n && n <= 31  = printf "t%d" (n - 25)
-            //    | otherwise           = undefined
-            return ""
-        }
+    val name: String get() = when (id) {
+        in 0..4 -> arrayOf("zero", "ra", "sp", "gp", "tp")[id]
+        in 5..7 -> "t${id - 5}"
+        in 8..9 -> "s${id - 8}"
+        in 10..17 -> "a${id - 10}"
+        in 18..27 -> "s${id - 16}"
+        in 28..31 -> "t${id - 25}"
+        else -> throw UnmappedRegisterException(id)
+    }
 }
+
+data class UnmappedRegisterException(val id: Int) : RuntimeException()

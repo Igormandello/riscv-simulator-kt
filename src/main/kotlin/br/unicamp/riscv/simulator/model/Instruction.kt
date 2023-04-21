@@ -94,6 +94,7 @@ data class Store(val kind: StoreKind, val rs1: XRegister, val rs2: XRegister, va
 
 enum class BinaryOpKind(val op: (UInt, UInt) -> UInt) {
     ADD(UInt::plus),
+    SUB(UInt::minus),
     AND(UInt::and),
     OR(UInt::or),
     XOR(UInt::xor),
@@ -126,14 +127,6 @@ data class BinaryOpImmediate(
     }
 
     override fun disassembly() = Disassembly(kind.name + "I", rd.name, rs1.name, imm.toInt())
-}
-
-data class Subtract(val rd: XRegister, val rs1: XRegister, val rs2: XRegister) : Instruction {
-    override fun execute(registerFile: RegisterFile, memory: Memory) {
-        TODO("Not yet implemented")
-    }
-
-    override fun disassembly() = Disassembly("SUB", rd.name, rs1.name, rs2.name)
 }
 
 data class SetIfLessThan(

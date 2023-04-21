@@ -24,7 +24,7 @@ data class AddUpperImmediateToPC(val rd: XRegister, val imm: UInt) : Instruction
     override fun disassembly() = Disassembly("AUIPC", rd.name, imm)
 }
 
-data class JumpAndLink(val rd: XRegister, val imm: Int) : Instruction {
+data class JumpAndLink(val rd: XRegister, val imm: Word) : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) {
         TODO("Not yet implemented")
     }
@@ -32,7 +32,7 @@ data class JumpAndLink(val rd: XRegister, val imm: Int) : Instruction {
     override fun disassembly() = Disassembly("JAL", rd.name, imm)
 }
 
-data class JumpAndLinkRegister(val rd: XRegister, val rs1: XRegister, val imm: Int) : Instruction {
+data class JumpAndLinkRegister(val rd: XRegister, val rs1: XRegister, val imm: Word) : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) {
         TODO("Not yet implemented")
     }
@@ -53,7 +53,7 @@ data class ConditionalBranch(
     val condition: BranchCondition,
     val rs1: XRegister,
     val rs2: XRegister,
-    val imm: Int
+    val imm: Word
 ) : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) {
         TODO("Not yet implemented")
@@ -70,12 +70,12 @@ enum class LoadKind(val sizeBytes: Int, val signExtend: Boolean) {
     W(4, false)
 }
 
-data class Load(val kind: LoadKind, val rs1: XRegister, val rs2: XRegister, val imm: Int) : Instruction {
+data class Load(val kind: LoadKind, val rd: XRegister, val rs1: XRegister, val imm: Word) : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) {
         TODO("Not yet implemented")
     }
 
-    override fun disassembly() = Disassembly("L${kind}", rs1, rs2, imm)
+    override fun disassembly() = Disassembly("L${kind}", rd, rs1, imm)
 }
 
 enum class StoreKind(val sizeBytes: Int) {
@@ -84,7 +84,7 @@ enum class StoreKind(val sizeBytes: Int) {
     W(4)
 }
 
-data class Store(val kind: StoreKind, val rs1: XRegister, val rs2: XRegister, val imm: Int) : Instruction {
+data class Store(val kind: StoreKind, val rs1: XRegister, val rs2: XRegister, val imm: Word) : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) {
         TODO("Not yet implemented")
     }

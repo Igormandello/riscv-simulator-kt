@@ -8,25 +8,38 @@ sealed interface Instruction {
     fun disassembly(): Disassembly
 }
 
+const val IALIGN = 4u
+
 data class LoadUpperImmediate(val rd: XRegister, val imm: UInt) : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) {
-        TODO("Not yet implemented")
+        registerFile[rd] = imm shl IMM_OFFSET
+        registerFile[PC] += IALIGN
     }
 
     override fun disassembly() = Disassembly("LUI", rd.name, imm)
+
+    companion object {
+        private const val IMM_OFFSET = 12
+    }
 }
 
 data class AddUpperImmediateToPC(val rd: XRegister, val imm: UInt) : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) {
-        TODO("Not yet implemented")
+        registerFile[rd] = registerFile[PC] + (imm shl IMM_OFFSET)
+        registerFile[PC] += IALIGN
     }
 
     override fun disassembly() = Disassembly("AUIPC", rd.name, imm)
+
+    companion object {
+        private const val IMM_OFFSET = 12
+    }
 }
 
 data class JumpAndLink(val rd: XRegister, val imm: Word) : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) {
-        TODO("Not yet implemented")
+        registerFile[rd] = registerFile[PC] + IALIGN
+        registerFile[PC] = (registerFile[PC].toInt() + imm.toInt()).toUInt()
     }
 
     override fun disassembly() = Disassembly("JAL", rd.name, imm)
@@ -34,7 +47,9 @@ data class JumpAndLink(val rd: XRegister, val imm: Word) : Instruction {
 
 data class JumpAndLinkRegister(val rd: XRegister, val rs1: XRegister, val imm: Word) : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) {
-        TODO("Not yet implemented")
+        val address = registerFile[rs1].toInt() + imm.toInt()
+        registerFile[rd] = registerFile[PC] + IALIGN
+        registerFile[PC] = address.toUInt()
     }
 
     override fun disassembly() = Disassembly("JALR", rd.name, rs1.name, imm)
@@ -56,37 +71,58 @@ data class ConditionalBranch(
     val imm: Word
 ) : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) {
-        TODO("Not yet implemented")
+        val x = registerFile[rs1]
+        val y = registerFile[rs2]
+        if (condition.test(x, y)) {
+            registerFile[PC] = (registerFile[PC].toInt() + imm.toInt()).toUInt()
+        } else {
+            registerFile[PC] += IALIGN
+        }
     }
 
     override fun disassembly() = Disassembly("B${condition.name}", rs1.name, rs2.name, imm)
 }
 
-enum class LoadKind(val sizeBytes: Int, val signExtend: Boolean) {
-    B(1, true),
-    BU(1, false),
-    H(2, true),
-    HU(2, false),
-    W(4, false)
+enum class LoadKind {
+    B,
+    BU,
+    H,
+    HU,
+    W
 }
 
 data class Load(val kind: LoadKind, val rd: XRegister, val rs1: XRegister, val imm: Word) : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) {
-        TODO("Not yet implemented")
+        val address = registerFile[rs1] + imm
+        registerFile[rd] = when (kind) {
+            LoadKind.B  -> memory.loadByte(address).toByte().toInt().toUInt()
+            LoadKind.BU -> memory.loadByte(address).toUInt()
+            LoadKind.H  -> memory.loadShort(address).toShort().toInt().toUInt()
+            LoadKind.HU -> memory.loadShort(address).toUInt()
+            LoadKind.W  -> memory.loadWord(address)
+        }
+        registerFile[PC] += IALIGN
     }
 
     override fun disassembly() = Disassembly("L${kind}", rd, rs1, imm)
 }
 
-enum class StoreKind(val sizeBytes: Int) {
-    B(1),
-    H(2),
-    W(4)
+enum class StoreKind {
+    B,
+    H,
+    W
 }
 
 data class Store(val kind: StoreKind, val rs1: XRegister, val rs2: XRegister, val imm: Word) : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) {
-        TODO("Not yet implemented")
+        val address = (registerFile[rs2].toInt() + imm.toInt()).toUInt()
+        val word = registerFile[rs1]
+        when (kind) {
+            StoreKind.B -> memory.storeByte(address, word.toUByte())
+            StoreKind.H -> memory.storeShort(address, word.toUShort())
+            StoreKind.W -> memory.storeWord(address, word)
+        }
+        registerFile[PC] += IALIGN
     }
 
     override fun disassembly() = Disassembly("S${kind}", rs1, rs2, imm)
@@ -98,9 +134,17 @@ enum class BinaryOpKind(val op: (UInt, UInt) -> UInt) {
     AND(UInt::and),
     OR(UInt::or),
     XOR(UInt::xor),
-    SLL({ x, y -> x shl y.toInt() }),
-    SRL({ x, y -> x shr y.toInt() }),
-    SRA({ x, y -> (x.toInt() shr y.toInt()).toUInt() })
+    SLL({ x, y -> x shl (y and 0x1Fu).toInt() }),
+    SRL({ x, y -> x shr (y and 0x1Fu).toInt() }),
+    SRA({ x, y -> (x.toInt() shr (y and 0x1Fu).toInt()).toUInt() }),
+    MUL({ x, y -> x * y }),
+    MULH({ x, y -> (x.toUShort().toShort() * y.toUShort().toShort()).toUInt() }),
+    MULHU({ x, y -> x.toUShort() * y.toUShort() }),
+    MULHSU({ x, y -> (x.toUShort().toShort() * y.toUShort().toInt()).toUInt() }),
+    DIV({ x, y -> if (y == 0u) UInt.MAX_VALUE else (x.toInt() / y.toInt()).toUInt() }),
+    DIVU({ x, y -> if (y == 0u) UInt.MAX_VALUE else x / y }),
+    REM({ x, y -> if (y == 0u) x else (x.toInt() % y.toInt()).toUInt() }),
+    REMU({ x, y -> if (y == 0u) x else x % y })
 }
 
 data class BinaryOp(
@@ -110,7 +154,10 @@ data class BinaryOp(
     val rs2: XRegister
 ) : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) {
-        TODO("Not yet implemented")
+        val x = registerFile[rs1]
+        val y = registerFile[rs2]
+        registerFile[rd] = kind.op(x, y)
+        registerFile[PC] += IALIGN
     }
 
     override fun disassembly() = Disassembly(kind.name, rd.name, rs1.name, rs2.name)
@@ -123,11 +170,16 @@ data class BinaryOpImmediate(
     val imm: UInt
 ) : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) {
-        TODO("Not yet implemented")
+        val x = registerFile[rs1]
+        registerFile[rd] = kind.op(x, imm)
+        registerFile[PC] += IALIGN
     }
 
     override fun disassembly() = Disassembly(kind.name + "I", rd.name, rs1.name, imm.toInt())
 }
+
+private fun slt(signed: Boolean, x: UInt, y: UInt): UInt =
+    if (signed && x.toInt() < y.toInt() || !signed && x < y) 1u else 0u
 
 data class SetIfLessThan(
     val signed: Boolean,
@@ -136,7 +188,10 @@ data class SetIfLessThan(
     val rs2: XRegister
 ) : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) {
-        TODO("Not yet implemented")
+        val x = registerFile[rs1]
+        val y = registerFile[rs2]
+        registerFile[rd] = slt(signed, x, y)
+        registerFile[PC] += IALIGN
     }
 
     override fun disassembly() = Disassembly("SLT${if (signed) "" else "U"}", rd.name, rs1.name, rs2.name)
@@ -149,7 +204,9 @@ data class SetIfLessThanImmediate(
     val imm: UInt
 ) : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) {
-        TODO("Not yet implemented")
+        val x = registerFile[rs1]
+        registerFile[rd] = slt(signed, x, imm)
+        registerFile[PC] += IALIGN
     }
 
     override fun disassembly() = Disassembly("SLTI${if (signed) "" else "U"}", rd.name, rs1.name, imm)

@@ -13,7 +13,7 @@ import io.kotest.property.forAll
 
 class RegisterFileTest : DescribeSpec({
     val arbitraryRegister =
-        Arb.int(-1, 31).map {
+        Arb.int(-1..31).map {
             if (it == -1) {
                 PC
             } else {

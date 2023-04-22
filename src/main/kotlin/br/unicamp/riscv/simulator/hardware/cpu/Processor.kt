@@ -7,7 +7,7 @@ import br.unicamp.riscv.simulator.model.PC
 
 class Processor(private val memory: Memory, private val registerFile: RegisterFile, private val decoder: Decoder) {
     fun execute() {
-        while (registerFile[PC] > 0u) {
+        while (registerFile[PC] != 0x20000000u) {
             val pcAddress = registerFile[PC]
             val fetchedInstruction = memory.loadWord(pcAddress)
             val instruction = decoder.decodeInstruction(fetchedInstruction)

@@ -11,8 +11,8 @@ import io.kotest.property.assume
 import io.kotest.property.checkAll
 
 fun Arb.Companion.xRegister() = Arb.int(0..31).map(::XRegister)
-fun Arb.Companion.imm20() = Arb.int(-0x80000..0x7FFFF)
-fun Arb.Companion.imm12() = Arb.int(-0x800..0x7FF)
+fun Arb.Companion.imm20() = Arb.uInt(0u..0xFFFFFu)
+fun Arb.Companion.imm12() = Arb.uImm12().map { it.signExtend(12) }
 fun Arb.Companion.uImm12() = Arb.uInt(0u..0xFFFu)
 
 class InstructionTest : DescribeSpec({
@@ -82,7 +82,7 @@ class InstructionTest : DescribeSpec({
                 val registerFile = RegisterFile()
                 val memory = Memory()
 
-                val addr = (registerFile[PC].toInt() + instruction.imm).toUInt()
+                val addr = registerFile[PC] + instruction.imm
 
                 instruction.execute(registerFile, memory)
 
@@ -114,7 +114,7 @@ class InstructionTest : DescribeSpec({
                 val registerFile = RegisterFile()
                 val memory = Memory()
 
-                val addr = (registerFile[instruction.rs1].toInt() + instruction.imm).toUInt()
+                val addr = registerFile[instruction.rs1] + instruction.imm
 
                 instruction.execute(registerFile, memory)
 
@@ -154,7 +154,7 @@ class InstructionTest : DescribeSpec({
                 assume(registerFile[instruction.rs1] == 0u)
                 assume(registerFile[instruction.rs2] == 0u)
 
-                val addr = (registerFile[PC].toInt() + instruction.imm).toUInt()
+                val addr = registerFile[PC] + instruction.imm
 
                 instruction.execute(registerFile, memory)
 
@@ -204,7 +204,7 @@ class InstructionTest : DescribeSpec({
                         val registerFile = RegisterFile()
                         val memory = Memory()
 
-                        val address = (registerFile[instruction.rs1].toInt() + instruction.imm).toUInt()
+                        val address = registerFile[instruction.rs1] + instruction.imm
                         assume(address <= UInt.MAX_VALUE - 4u)
 
                         when (kind) {
@@ -280,7 +280,7 @@ class InstructionTest : DescribeSpec({
 
                         instruction.execute(registerFile, memory)
 
-                        val address = (registerFile[instruction.rs2].toInt() + instruction.imm).toUInt()
+                        val address = registerFile[instruction.rs2] + instruction.imm
 
                         assume(address <= UInt.MAX_VALUE - 4u)
 
@@ -345,29 +345,6 @@ class InstructionTest : DescribeSpec({
                 it("advances PC") {
                     checkAdvancePC(arbBinOp)
                 }
-            }
-        }
-
-        describe("SUB") {
-            val arbSub = arbitrary {
-                val rd = Arb.xRegister().bind()
-                val rs1 = Arb.xRegister().bind()
-                val rs2 = Arb.xRegister().bind()
-                Subtract(rd, rs1, rs2)
-            }
-
-            it("affects destination register") {
-                checkSetDestRegister(arbSub, { it.rd }) { instruction, registerFile, _ ->
-                    registerFile[instruction.rs1] - registerFile[instruction.rs2]
-                }
-            }
-
-            it("preserves other registers") {
-                checkPreservesOtherRegisters(arbSub) { it.rd }
-            }
-
-            it("advances PC") {
-                checkAdvancePC(arbSub)
             }
         }
     }

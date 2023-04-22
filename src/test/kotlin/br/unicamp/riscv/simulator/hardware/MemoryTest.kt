@@ -1,5 +1,6 @@
 package br.unicamp.riscv.simulator.hardware
 
+import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.property.PropTestConfig
@@ -7,6 +8,7 @@ import io.kotest.property.assume
 import io.kotest.property.checkAll
 import io.kotest.property.forAll
 
+@OptIn(ExperimentalKotest::class)
 class MemoryTest : DescribeSpec({
     describe("Memory is persistent") {
         it("persists bytes") {

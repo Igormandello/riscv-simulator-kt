@@ -3,6 +3,7 @@ package br.unicamp.riscv.simulator.hardware.cpu.decoding
 import br.unicamp.riscv.simulator.model.*
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.IsStableType
+import io.kotest.datatest.WithDataTestName
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 
@@ -64,7 +65,7 @@ class DecoderTest : DescribeSpec({
     }
 
     describe("Conditional branches") {
-        for (kind in BranchCondition.values()) {
+        withData(BranchCondition.values().toList()) { kind ->
             val fnBits = when (kind) {
                 BranchCondition.EQ -> 0b000_000000000000u
                 BranchCondition.NE -> 0b001_000000000000u
@@ -98,7 +99,7 @@ class DecoderTest : DescribeSpec({
     }
 
     describe("Load") {
-        for (kind in LoadKind.values()) {
+        withData(LoadKind.values().toList()) { kind ->
             val fnBits = when (kind) {
                 LoadKind.B -> 0b000_000000000000u
                 LoadKind.BU -> 0b100_000000000000u
@@ -131,7 +132,7 @@ class DecoderTest : DescribeSpec({
     }
 
     describe("Store") {
-        for (kind in StoreKind.values()) {
+        withData(StoreKind.values().toList()) { kind ->
             val fnBits = when (kind) {
                 StoreKind.B -> 0b000_000000000000u
                 StoreKind.H -> 0b001_000000000000u
@@ -162,7 +163,7 @@ class DecoderTest : DescribeSpec({
     }
 
     describe("Binary operation") {
-        for (kind in BinaryOpKind.values()) {
+        withData(BinaryOpKind.values().toList()) { kind ->
             val fnBits = when (kind) {
                 BinaryOpKind.ADD -> 0b0000000_0000000000_000_000000000000u
                 BinaryOpKind.SUB -> 0b0100000_0000000000_000_000000000000u
@@ -195,29 +196,27 @@ class DecoderTest : DescribeSpec({
                 decoder.decodeInstruction(word) shouldBe expected
             }
 
-            if (kind !in setOf(BinaryOpKind.ADD, BinaryOpKind.AND, BinaryOpKind.OR, BinaryOpKind.XOR)) {
-                continue
-            }
-
-            withData(
-                InstructionDecoding(
-                    0b000000000000_00000_000_00000_0010011u or fnBits,
-                    BinaryOpImmediate(kind, XRegister(0), XRegister(0), 0u)
-                ),
-                InstructionDecoding(
-                    0b000000000000_10100_000_00101_0010011u or fnBits,
-                    BinaryOpImmediate(kind, XRegister(5), XRegister(20), 0u)
-                ),
-                InstructionDecoding(
-                    0b000000101010_10100_000_00101_0010011u or fnBits,
-                    BinaryOpImmediate(kind, XRegister(5), XRegister(20), 42u)
-                ),
-                InstructionDecoding(
-                    0b111111010110_10100_000_00101_0010011u or fnBits,
-                    BinaryOpImmediate(kind, XRegister(5), XRegister(20), (-42).toUInt())
-                ),
-            ) { (word: Word, expected: Instruction) ->
-                decoder.decodeInstruction(word) shouldBe expected
+            if (kind in setOf(BinaryOpKind.ADD, BinaryOpKind.AND, BinaryOpKind.OR, BinaryOpKind.XOR)) {
+                withData(
+                    InstructionDecoding(
+                        0b000000000000_00000_000_00000_0010011u or fnBits,
+                        BinaryOpImmediate(kind, XRegister(0), XRegister(0), 0u)
+                    ),
+                    InstructionDecoding(
+                        0b000000000000_10100_000_00101_0010011u or fnBits,
+                        BinaryOpImmediate(kind, XRegister(5), XRegister(20), 0u)
+                    ),
+                    InstructionDecoding(
+                        0b000000101010_10100_000_00101_0010011u or fnBits,
+                        BinaryOpImmediate(kind, XRegister(5), XRegister(20), 42u)
+                    ),
+                    InstructionDecoding(
+                        0b111111010110_10100_000_00101_0010011u or fnBits,
+                        BinaryOpImmediate(kind, XRegister(5), XRegister(20), (-42).toUInt())
+                    ),
+                ) { (word: Word, expected: Instruction) ->
+                    decoder.decodeInstruction(word) shouldBe expected
+                }
             }
         }
     }
@@ -299,9 +298,8 @@ class DecoderTest : DescribeSpec({
     }
 })
 
-@IsStableType
-data class InstructionDecoding(val word: Word, val instruction: Instruction) {
-    override fun toString(): String {
+data class InstructionDecoding(val word: Word, val instruction: Instruction): WithDataTestName {
+    override fun dataTestName(): String {
         val disassembly = instruction.disassembly()
         return word.toString(16).padStart(8, '0') + " = " +
                 disassembly.mnemonic + " " +

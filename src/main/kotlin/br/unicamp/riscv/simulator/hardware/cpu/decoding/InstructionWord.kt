@@ -8,7 +8,7 @@ import br.unicamp.riscv.simulator.model.bitRange
 abstract class InstructionWord(word: Word) {
     protected val opcode: Word = word.bitRange(0..6)
 
-    protected val rdId: Word = word.bitRange(7..11)
+    private val rdId: Word = word.bitRange(7..11)
     protected val rd: XRegister = XRegister(this.rdId.toInt())
 
     private val rs1Id: Word = word.bitRange(15..19)
@@ -19,9 +19,9 @@ abstract class InstructionWord(word: Word) {
 
     protected val funct3: Word = word.bitRange(12..14)
     protected val funct7: Word = word.bitRange(25..31)
+    protected val funct10: Word = funct3 or (funct7 shl 3)
 
     protected val shamt: Word = rs2Id
-    protected abstract val imm: Word
 
     abstract fun decode(): Instruction
 
@@ -45,10 +45,10 @@ abstract class InstructionWord(word: Word) {
         protected val JALR_OPCODE = 0b1100111u
 
         @JvmStatic
-        protected val LOAD_OPCODE = 0b0010011u
+        protected val LOAD_OPCODE = 0b0000011u
 
         @JvmStatic
-        protected val ARITHMETIC_OP_IMMEDIATE_OPCODE = 0b0000011u
+        protected val ARITHMETIC_OP_IMMEDIATE_OPCODE = 0b0010011u
 
         @JvmStatic
         protected val LOAD_UPPER_IMMEDIATE_OPCODE = 0b0110111u

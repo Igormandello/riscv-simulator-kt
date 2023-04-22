@@ -1,16 +1,11 @@
 package br.unicamp.riscv.simulator.hardware.cpu.decoding
 
-import br.unicamp.riscv.simulator.model.Instruction
-import br.unicamp.riscv.simulator.model.JumpAndLink
-import br.unicamp.riscv.simulator.model.Word
-import br.unicamp.riscv.simulator.model.bitRange
-import br.unicamp.riscv.simulator.model.get
+import br.unicamp.riscv.simulator.model.*
 
 class JTypeInstructionWord(word: Word) : InstructionWord(word) {
-    override val imm: Word = (word.bitRange(21..30) shl 1)
-        .plus(word[20].toUInt() shl 11)
-        .plus(word.bitRange(12..19) shl 12)
-        .plus(word[31].toUInt() shl 20)
+    private val imm20: Word = word
+        .patch(21..30, 20..20, 12..19, 31..31)
+        .signExtend(20) shl 1
 
-    override fun decode(): Instruction = JumpAndLink(rd, imm)
+    override fun decode(): Instruction = JumpAndLink(rd, imm20)
 }

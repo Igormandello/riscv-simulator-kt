@@ -1,12 +1,9 @@
 package br.unicamp.riscv.simulator.hardware.cpu.decoding
 
-import br.unicamp.riscv.simulator.model.Instruction
-import br.unicamp.riscv.simulator.model.Store
-import br.unicamp.riscv.simulator.model.StoreKind
-import br.unicamp.riscv.simulator.model.Word
+import br.unicamp.riscv.simulator.model.*
 
 class STypeInstructionWord(word: Word) : InstructionWord(word) {
-    override val imm: Word = this.rdId + (funct7 shl 5)
+    private val imm12: Word = word.patch(7..11, 25..31).signExtend(12)
 
     override fun decode(): Instruction {
         val kind = when (funct3) {
@@ -16,6 +13,6 @@ class STypeInstructionWord(word: Word) : InstructionWord(word) {
             else -> throw IllegalArgumentException("Unknown S Type function")
         }
 
-        return Store(kind, rs1, rs1, imm)
+        return Store(kind, rs1, rs2, imm12)
     }
 }

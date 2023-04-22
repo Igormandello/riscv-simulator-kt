@@ -7,7 +7,7 @@ import br.unicamp.riscv.simulator.model.Word
 import br.unicamp.riscv.simulator.model.bitRange
 
 class UTypeInstructionWord(word: Word) : InstructionWord(word) {
-    override val imm: Word = word.bitRange(12..31) shl 12
+    private val imm: Word = word.bitRange(12..31)
 
     override fun decode(): Instruction = when (opcode) {
         LOAD_UPPER_IMMEDIATE_OPCODE -> LoadUpperImmediate(rd, imm)

@@ -1,17 +1,11 @@
 package br.unicamp.riscv.simulator.hardware.cpu.decoding
 
-import br.unicamp.riscv.simulator.model.BranchCondition
-import br.unicamp.riscv.simulator.model.ConditionalBranch
-import br.unicamp.riscv.simulator.model.Instruction
-import br.unicamp.riscv.simulator.model.Word
-import br.unicamp.riscv.simulator.model.bitRange
-import br.unicamp.riscv.simulator.model.get
+import br.unicamp.riscv.simulator.model.*
 
 class BTypeInstructionWord(word: Word) : InstructionWord(word) {
-    override val imm: Word = (word.bitRange(1..11) shl 1)
-        .plus(word.bitRange(25..30) shl 5)
-        .plus(word[7].toUInt() shl 11)
-        .plus(word[31].toUInt() shl 12)
+    private val imm12: Word = word
+        .patch(8..11, 25..30, 7..7, 31..31)
+        .signExtend(12) shl 1
 
     override fun decode(): Instruction {
         val condition = when (funct3) {
@@ -24,6 +18,6 @@ class BTypeInstructionWord(word: Word) : InstructionWord(word) {
             else -> throw IllegalArgumentException("Unknown B Type function")
         }
 
-        return ConditionalBranch(condition, rs1, rs2, imm)
+        return ConditionalBranch(condition, rs1, rs2, imm12)
     }
 }

@@ -28,9 +28,18 @@ class ITypeInstructionWord(word: Word) : InstructionWord(word) {
         when (funct3) {
             0b010u -> SetIfLessThanImmediate(true, rd, rs1, imm12S)
             0b011u -> SetIfLessThanImmediate(false, rd, rs1, imm12)
-            0b001u -> BinaryOpImmediate(BinaryOpKind.SLL, rd, rs1, shamt)
+            0b001u ->
+                if (funct7 == 0u) {
+                    BinaryOpImmediate(BinaryOpKind.SLL, rd, rs1, shamt)
+                } else {
+                    throw IllegalArgumentException("Unknown binary shift op function")
+                }
             0b101u -> {
-                val kind = if (funct7 == 0u) BinaryOpKind.SRL else BinaryOpKind.SRA
+                val kind = when (funct7) {
+                    0u -> BinaryOpKind.SRL
+                    32u -> BinaryOpKind.SRA
+                    else -> throw IllegalArgumentException("Unknown binary shift op function")
+                }
                 BinaryOpImmediate(kind, rd, rs1, shamt)
             }
             else -> {

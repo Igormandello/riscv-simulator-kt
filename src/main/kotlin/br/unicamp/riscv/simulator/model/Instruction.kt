@@ -118,8 +118,9 @@ enum class StoreKind {
 
 data class Store(val kind: StoreKind, val rs1: XRegister, val rs2: XRegister, val imm: Word) : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) {
-        val address = registerFile[rs2] + imm
-        val word = registerFile[rs1]
+        val address = registerFile[rs1] + imm
+        val word = registerFile[rs2]
+
         when (kind) {
             StoreKind.B -> memory.storeByte(address, word.toUByte())
             StoreKind.H -> memory.storeShort(address, word.toUShort())
@@ -128,7 +129,7 @@ data class Store(val kind: StoreKind, val rs1: XRegister, val rs2: XRegister, va
         registerFile[PC] += IALIGN
     }
 
-    override fun disassembly() = Disassembly("S${kind}", rs1, rs2, imm.toInt())
+    override fun disassembly() = Disassembly("S${kind}", rs2, rs1, imm.toInt())
 }
 
 enum class BinaryOpKind(val op: (UInt, UInt) -> UInt) {

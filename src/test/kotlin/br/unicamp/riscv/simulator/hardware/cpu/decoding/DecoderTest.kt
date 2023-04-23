@@ -218,6 +218,29 @@ class DecoderTest : DescribeSpec({
                     decoder.decodeInstruction(word) shouldBe expected
                 }
             }
+
+            if (kind in setOf(BinaryOpKind.SLL, BinaryOpKind.SRL, BinaryOpKind.SRA)) {
+                withData(
+                    InstructionDecoding(
+                        0b0000000_00000_00000_000_00000_0010011u or fnBits,
+                        BinaryOpImmediate(kind, XRegister(0), XRegister(0), 0u)
+                    ),
+                    InstructionDecoding(
+                        0b0000000_00000_10100_000_00101_0010011u or fnBits,
+                        BinaryOpImmediate(kind, XRegister(5), XRegister(20), 0u)
+                    ),
+                    InstructionDecoding(
+                        0b0000000_01010_10100_000_00101_0010011u or fnBits,
+                        BinaryOpImmediate(kind, XRegister(5), XRegister(20), 10u)
+                    ),
+                    InstructionDecoding(
+                        0b0000000_11111_10100_000_00101_0010011u or fnBits,
+                        BinaryOpImmediate(kind, XRegister(5), XRegister(20), 31u)
+                    ),
+                ) { (word: Word, expected: Instruction) ->
+                    decoder.decodeInstruction(word) shouldBe expected
+                }
+            }
         }
     }
 

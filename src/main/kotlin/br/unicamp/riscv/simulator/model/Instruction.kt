@@ -6,6 +6,9 @@ import br.unicamp.riscv.simulator.hardware.RegisterFile
 sealed interface Instruction {
     fun execute(registerFile: RegisterFile, memory: Memory)
     fun disassembly(): Disassembly
+
+    val cycleCount: Int
+        get() = 1
 }
 
 const val IALIGN = 4u

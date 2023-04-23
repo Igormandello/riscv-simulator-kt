@@ -15,6 +15,10 @@ data class XRegister(val id: Int) : Register() {
         in 28..31 -> "t${id - 25}"
         else -> throw UnmappedRegisterException(id)
     }
+
+    override fun toString(): String {
+        return this.name
+    }
 }
 
 data class UnmappedRegisterException(val id: Int) : RuntimeException()

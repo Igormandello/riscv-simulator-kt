@@ -9,13 +9,13 @@ abstract class InstructionWord(word: Word) {
     protected val opcode: Word = word.bitRange(0..6)
 
     private val rdId: Word = word.bitRange(7..11)
-    protected val rd: XRegister = XRegister(this.rdId.toInt())
+    val rd: XRegister = XRegister(this.rdId.toInt())
 
     private val rs1Id: Word = word.bitRange(15..19)
-    protected val rs1: XRegister = XRegister(rs1Id.toInt())
+    val rs1: XRegister = XRegister(rs1Id.toInt())
 
     private val rs2Id: Word = word.bitRange(20..24)
-    protected val rs2: XRegister = XRegister(rs2Id.toInt())
+    val rs2: XRegister = XRegister(rs2Id.toInt())
 
     protected val funct3: Word = word.bitRange(12..14)
     protected val funct7: Word = word.bitRange(25..31)

@@ -10,8 +10,9 @@ import java.nio.file.Path
 import kotlin.io.path.*
 
 suspend fun main(args: Array<String>) {
-    val path = Path("./")
+    val path = Path("./test/build")
     val testFiles = args.flatMap { path.listDirectoryEntries(it) }.sorted()
+    print(args.first())
     coroutineScope {
         testFiles.forEach {
             launch {

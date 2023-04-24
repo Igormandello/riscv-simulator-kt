@@ -29,6 +29,7 @@ class Logger(private val registerFile: RegisterFile, logFileName: String) : Clos
                     " ${rs1.xId}=${rs1BeforeInstruction.toHex()}" +
                     " ${rs2.xId}=${rs2BeforeInstruction.toHex()}" +
                     " ${disassembly.mnemonic.padEnd(8, ' ')} ${disassembly.args.joinToString()}"
+
             withContext(Dispatchers.IO) {
                 writer.appendLine(logString)
             }

@@ -5,19 +5,27 @@ import br.unicamp.riscv.simulator.hardware.RegisterFile
 import br.unicamp.riscv.simulator.hardware.cpu.Processor
 import br.unicamp.riscv.simulator.log.Logger
 import java.io.File
+import kotlinx.coroutines.*
 
-fun main(args: Array<String>) {
+@OptIn(DelicateCoroutinesApi::class)
+suspend fun main(args: Array<String>) {
+    val context = newFixedThreadPoolContext(16, "main-dispatcher")
+    val scope = CoroutineScope(context)
+
     File("./test/build/elf/")
         .listFiles()
         ?.sorted()
-        ?.forEach {
-            println("Processing ${it.name}...")
-            val registerFile = RegisterFile()
-            val memory = Memory()
-            val logger = Logger(registerFile, "./test/${it.nameWithoutExtension}.log")
-            val processor = Processor(memory, registerFile, logger)
+        ?.map { scope.launch { it.simulate() } }
+        ?.joinAll()
+}
 
-            it.readBytes().forEachIndexed { i, byte -> memory.storeByte(i.toUInt(), byte.toUByte()) }
-            processor.execute()
-        }
+private fun File.simulate() {
+    println("Processing ${this.name}...")
+    val registerFile = RegisterFile()
+    val memory = Memory()
+    val logger = Logger(registerFile, "./test/${this.nameWithoutExtension}.log")
+    val processor = Processor(memory, registerFile, logger)
+
+    this.readBytes().forEachIndexed { i, byte -> memory.storeByte(i.toUInt(), byte.toUByte()) }
+    processor.execute()
 }

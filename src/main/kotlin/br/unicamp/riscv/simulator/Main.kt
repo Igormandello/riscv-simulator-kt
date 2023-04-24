@@ -12,7 +12,7 @@ suspend fun main(args: Array<String>) {
     val context = newFixedThreadPoolContext(16, "main-dispatcher")
     val scope = CoroutineScope(context)
 
-    File("./test/build/elf/")
+    File("./test/build/bin/")
         .listFiles()
         ?.sorted()
         ?.map { scope.launch { it.simulate() } }
@@ -26,6 +26,6 @@ private fun File.simulate() {
     val logger = Logger(registerFile, "./test/${this.nameWithoutExtension}.log")
     val processor = Processor(memory, registerFile, logger)
 
-    this.readBytes().forEachIndexed { i, byte -> memory.storeByte(i.toUInt(), byte.toUByte()) }
+    this.readBytes().forEachIndexed { i, byte -> memory.storeByte(0x100u + i.toUInt(), byte.toUByte()) }
     processor.execute()
 }

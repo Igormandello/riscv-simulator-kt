@@ -4,28 +4,34 @@ import br.unicamp.riscv.simulator.hardware.Memory
 import br.unicamp.riscv.simulator.hardware.RegisterFile
 import br.unicamp.riscv.simulator.hardware.cpu.Processor
 import br.unicamp.riscv.simulator.log.Logger
-import java.io.File
-import kotlinx.coroutines.*
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import java.nio.file.Path
+import kotlin.io.path.*
 
-@OptIn(DelicateCoroutinesApi::class)
 suspend fun main(args: Array<String>) {
-    val context = newFixedThreadPoolContext(16, "main-dispatcher")
-    val scope = CoroutineScope(context)
+    val path = Path("./")
+    val testFiles = args.flatMap { path.listDirectoryEntries(it) }.sorted()
 
-    File("./test/build/bin/")
-        .listFiles()
-        ?.sorted()
-        ?.map { scope.launch { it.simulate() } }
-        ?.joinAll()
+    coroutineScope {
+        testFiles.forEach {
+            launch {
+                it.simulate()
+            }
+        }
+    }
 }
 
-private fun File.simulate() {
-    println("Processing ${this.name}...")
+private suspend fun Path.simulate() {
+    println("Processing $name...")
     val registerFile = RegisterFile()
     val memory = Memory()
-    val logger = Logger(registerFile, "./test/${this.nameWithoutExtension}.log")
-    val processor = Processor(memory, registerFile, logger)
+    val logFileName = parent.resolve("$nameWithoutExtension.log").pathString
+    Logger(registerFile, logFileName).use { logger ->
+        val processor = Processor(memory, registerFile, logger)
+        memory.storeBytes(0x100u, readBytes().toUByteArray().toTypedArray())
 
-    this.readBytes().forEachIndexed { i, byte -> memory.storeByte(0x100u + i.toUInt(), byte.toUByte()) }
-    processor.execute()
+        val cycles = processor.execute()
+        println("$name ok, finished in $cycles cycles")
+    }
 }

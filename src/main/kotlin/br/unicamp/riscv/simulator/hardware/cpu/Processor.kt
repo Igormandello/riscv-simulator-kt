@@ -7,7 +7,7 @@ import br.unicamp.riscv.simulator.log.Logger
 import br.unicamp.riscv.simulator.model.PC
 
 class Processor(private val memory: Memory, private val registerFile: RegisterFile, private val logger: Logger) {
-    fun execute(): Int {
+    suspend fun execute(): Int {
         var cycleCount = 0
 
         registerFile[PC] = 0x100u

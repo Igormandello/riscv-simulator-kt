@@ -2,21 +2,18 @@ package br.unicamp.riscv.simulator.hardware.cpu.decoding
 
 import br.unicamp.riscv.simulator.model.*
 import io.kotest.core.spec.style.DescribeSpec
-import io.kotest.datatest.IsStableType
 import io.kotest.datatest.WithDataTestName
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 
 class DecoderTest : DescribeSpec({
-    val decoder = Decoder()
-
     describe("LUI") {
         withData(
             InstructionDecoding(0b0000000000000000000_00000_0110111u, LoadUpperImmediate(XRegister(0), 0u)),
             InstructionDecoding(0b0000000000000000000_00101_0110111u, LoadUpperImmediate(XRegister(5), 0u)),
             InstructionDecoding(0b0000000000000101010_00101_0110111u, LoadUpperImmediate(XRegister(5), 42u))
         ) { (word: Word, expected: Instruction) ->
-            decoder.decodeInstruction(word) shouldBe expected
+            decodeInstruction(word) shouldBe expected
         }
     }
 
@@ -26,7 +23,7 @@ class DecoderTest : DescribeSpec({
             InstructionDecoding(0b0000000000000000000_00101_0010111u, AddUpperImmediateToPC(XRegister(5), 0u)),
             InstructionDecoding(0b0000000000000101010_00101_0010111u, AddUpperImmediateToPC(XRegister(5), 42u))
         ) { (word: Word, expected: Instruction) ->
-            decoder.decodeInstruction(word) shouldBe expected
+            decodeInstruction(word) shouldBe expected
         }
     }
 
@@ -37,7 +34,7 @@ class DecoderTest : DescribeSpec({
             InstructionDecoding(0b0_0000010101_0_00000000_00101_1101111u, JumpAndLink(XRegister(5), 42u)),
             InstructionDecoding(0b1_1111101011_1_11111111_00101_1101111u, JumpAndLink(XRegister(5), (-42).toUInt())),
         ) { (word: Word, expected: Instruction) ->
-            decoder.decodeInstruction(word) shouldBe expected
+            decodeInstruction(word) shouldBe expected
         }
     }
 
@@ -60,7 +57,7 @@ class DecoderTest : DescribeSpec({
                 JumpAndLinkRegister(XRegister(5), XRegister(20), (-42).toUInt())
             ),
         ) { (word: Word, expected: Instruction) ->
-            decoder.decodeInstruction(word) shouldBe expected
+            decodeInstruction(word) shouldBe expected
         }
     }
 
@@ -93,7 +90,7 @@ class DecoderTest : DescribeSpec({
                     ConditionalBranch(kind, XRegister(5), XRegister(20), (-42).toUInt())
                 ),
             ) { (word: Word, expected: Instruction) ->
-                decoder.decodeInstruction(word) shouldBe expected
+                decodeInstruction(word) shouldBe expected
             }
         }
     }
@@ -126,7 +123,7 @@ class DecoderTest : DescribeSpec({
                     Load(kind, XRegister(5), XRegister(20), (-42).toUInt())
                 ),
             ) { (word: Word, expected: Instruction) ->
-                decoder.decodeInstruction(word) shouldBe expected
+                decodeInstruction(word) shouldBe expected
             }
         }
     }
@@ -157,7 +154,7 @@ class DecoderTest : DescribeSpec({
                     Store(kind, XRegister(5), XRegister(20), (-42).toUInt())
                 ),
             ) { (word: Word, expected: Instruction) ->
-                decoder.decodeInstruction(word) shouldBe expected
+                decodeInstruction(word) shouldBe expected
             }
         }
     }
@@ -193,7 +190,7 @@ class DecoderTest : DescribeSpec({
                     BinaryOp(kind, XRegister(4), XRegister(5), XRegister(20))
                 ),
             ) { (word: Word, expected: Instruction) ->
-                decoder.decodeInstruction(word) shouldBe expected
+                decodeInstruction(word) shouldBe expected
             }
 
             if (kind in setOf(BinaryOpKind.ADD, BinaryOpKind.AND, BinaryOpKind.OR, BinaryOpKind.XOR)) {
@@ -215,7 +212,7 @@ class DecoderTest : DescribeSpec({
                         BinaryOpImmediate(kind, XRegister(5), XRegister(20), (-42).toUInt())
                     ),
                 ) { (word: Word, expected: Instruction) ->
-                    decoder.decodeInstruction(word) shouldBe expected
+                    decodeInstruction(word) shouldBe expected
                 }
             }
 
@@ -238,7 +235,7 @@ class DecoderTest : DescribeSpec({
                         BinaryOpImmediate(kind, XRegister(5), XRegister(20), 31u)
                     ),
                 ) { (word: Word, expected: Instruction) ->
-                    decoder.decodeInstruction(word) shouldBe expected
+                    decodeInstruction(word) shouldBe expected
                 }
             }
         }
@@ -255,7 +252,7 @@ class DecoderTest : DescribeSpec({
                 SetIfLessThan(true, XRegister(4), XRegister(5), XRegister(20))
             ),
         ) { (word: Word, expected: Instruction) ->
-            decoder.decodeInstruction(word) shouldBe expected
+            decodeInstruction(word) shouldBe expected
         }
     }
 
@@ -270,7 +267,7 @@ class DecoderTest : DescribeSpec({
                 SetIfLessThan(false, XRegister(4), XRegister(5), XRegister(20))
             ),
         ) { (word: Word, expected: Instruction) ->
-            decoder.decodeInstruction(word) shouldBe expected
+            decodeInstruction(word) shouldBe expected
         }
     }
 
@@ -293,7 +290,7 @@ class DecoderTest : DescribeSpec({
                 SetIfLessThanImmediate(true, XRegister(5), XRegister(20), (-42).toUInt())
             ),
         ) { (word: Word, expected: Instruction) ->
-            decoder.decodeInstruction(word) shouldBe expected
+            decodeInstruction(word) shouldBe expected
         }
     }
 
@@ -316,10 +313,12 @@ class DecoderTest : DescribeSpec({
                 SetIfLessThanImmediate(false, XRegister(5), XRegister(20), 0b111111010110u)
             ),
         ) { (word: Word, expected: Instruction) ->
-            decoder.decodeInstruction(word) shouldBe expected
+            decodeInstruction(word) shouldBe expected
         }
     }
 })
+
+fun decodeInstruction(word: Word): Instruction = InstructionWord.createInstructionWord(word).decode()
 
 data class InstructionDecoding(val word: Word, val instruction: Instruction): WithDataTestName {
     override fun dataTestName(): String {

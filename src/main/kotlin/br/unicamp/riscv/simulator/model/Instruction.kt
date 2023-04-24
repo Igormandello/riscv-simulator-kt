@@ -55,7 +55,7 @@ data class JumpAndLinkRegister(val rd: XRegister, val rs1: XRegister, val imm: W
         registerFile[PC] = address
     }
 
-    override fun disassembly() = Disassembly("JALR", rd.name, rs1.name, imm.toInt())
+    override fun disassembly() = Disassembly("JALR", rd.name, "${imm.toInt()}($rs1)")
 }
 
 enum class BranchCondition(val test: (UInt, UInt) -> Boolean) {
@@ -107,7 +107,7 @@ data class Load(val kind: LoadKind, val rd: XRegister, val rs1: XRegister, val i
         registerFile[PC] += IALIGN
     }
 
-    override fun disassembly() = Disassembly("L${kind}", rd, rs1, imm.toInt())
+    override fun disassembly() = Disassembly("L${kind}", rd, "${imm.toInt()}($rs1)")
 }
 
 enum class StoreKind {
@@ -118,8 +118,9 @@ enum class StoreKind {
 
 data class Store(val kind: StoreKind, val rs1: XRegister, val rs2: XRegister, val imm: Word) : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) {
-        val address = registerFile[rs2] + imm
-        val word = registerFile[rs1]
+        val address = registerFile[rs1] + imm
+        val word = registerFile[rs2]
+
         when (kind) {
             StoreKind.B -> memory.storeByte(address, word.toUByte())
             StoreKind.H -> memory.storeShort(address, word.toUShort())
@@ -128,7 +129,7 @@ data class Store(val kind: StoreKind, val rs1: XRegister, val rs2: XRegister, va
         registerFile[PC] += IALIGN
     }
 
-    override fun disassembly() = Disassembly("S${kind}", rs1, rs2, imm.toInt())
+    override fun disassembly() = Disassembly("S${kind}", rs2, "${imm.toInt()}($rs1)")
 }
 
 enum class BinaryOpKind(val op: (UInt, UInt) -> UInt) {

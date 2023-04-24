@@ -13,6 +13,7 @@ repositories {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.0-RC")
     testImplementation(kotlin("test"))
     testImplementation(platform("io.kotest:kotest-bom:5.6.1"))
     testImplementation("io.kotest:kotest-runner-junit5")

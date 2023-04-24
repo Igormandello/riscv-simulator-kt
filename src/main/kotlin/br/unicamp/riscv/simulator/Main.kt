@@ -10,9 +10,9 @@ import java.nio.file.Path
 import kotlin.io.path.*
 
 suspend fun main(args: Array<String>) {
-    val path = Path("./test/build")
+    val path = Path("./")
     val testFiles = args.flatMap { path.listDirectoryEntries(it) }.sorted()
-    print(args.first())
+
     coroutineScope {
         testFiles.forEach {
             launch {
@@ -30,7 +30,8 @@ private suspend fun Path.simulate() {
     Logger(registerFile, logFileName).use { logger ->
         val processor = Processor(memory, registerFile, logger)
         memory.storeBytes(0x100u, readBytes().toUByteArray().toTypedArray())
-        processor.execute()
-        println("$name ok")
+
+        val cycles = processor.execute()
+        println("$name ok, finished in $cycles cycles")
     }
 }

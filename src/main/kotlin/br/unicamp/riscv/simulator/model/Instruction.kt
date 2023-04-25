@@ -143,7 +143,7 @@ enum class BinaryOpKind(val op: (UInt, UInt) -> UInt) {
     MUL({ x, y -> x * y }),
     MULH({ x, y -> (x.toInt().toLong() * y.toInt().toLong()).shr(32).toUInt() }),
     MULHU({ x, y -> (x.toULong() * y.toULong()).shr(32).toUInt() }),
-    MULHSU({ x, y -> (x.toLong() * y.toULong().toLong()).toULong().shr(32).toUInt() }),
+    MULHSU({ x, y -> (x.toInt().toLong() * y.toLong()).toULong().shr(32).toUInt() }),
     DIV({ x, y -> if (y == 0u) UInt.MAX_VALUE else (x.toInt() / y.toInt()).toUInt() }),
     DIVU({ x, y -> if (y == 0u) UInt.MAX_VALUE else x / y }),
     REM({ x, y -> if (y == 0u) x else (x.toInt() % y.toInt()).toUInt() }),

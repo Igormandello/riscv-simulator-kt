@@ -33,7 +33,7 @@ abstract class InstructionWord(word: Word) {
             in B_TYPE_OPCODES -> BTypeInstructionWord(word)
             in U_TYPE_OPCODES -> UTypeInstructionWord(word)
             in J_TYPE_OPCODES -> JTypeInstructionWord(word)
-            else -> throw IllegalArgumentException("Unknown instruction type (0b${opcode.toString(2).reversed()})")
+            else -> throw IllegalArgumentException("Unknown instruction type (0b${opcode.toString(2)})")
         }
 
         private val BINARY_OP_OPCODE = 0b0110011u

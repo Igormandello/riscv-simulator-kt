@@ -120,7 +120,6 @@ data class Store(val kind: StoreKind, val rs1: XRegister, val rs2: XRegister, va
     override fun execute(registerFile: RegisterFile, memory: Memory) {
         val address = registerFile[rs1] + imm
         val word = registerFile[rs2]
-
         when (kind) {
             StoreKind.B -> memory.storeByte(address, word.toUByte())
             StoreKind.H -> memory.storeShort(address, word.toUShort())
@@ -142,9 +141,9 @@ enum class BinaryOpKind(val op: (UInt, UInt) -> UInt) {
     SRL({ x, y -> x shr (y and 0x1Fu).toInt() }),
     SRA({ x, y -> (x.toInt() shr (y and 0x1Fu).toInt()).toUInt() }),
     MUL({ x, y -> x * y }),
-    MULH({ x, y -> (x.toUShort().toShort() * y.toUShort().toShort()).toUInt() }),
-    MULHU({ x, y -> x.toUShort() * y.toUShort() }),
-    MULHSU({ x, y -> (x.toUShort().toShort() * y.toUShort().toInt()).toUInt() }),
+    MULH({ x, y -> (x.toInt().toLong() * y.toInt().toLong()).shr(32).toUInt() }),
+    MULHU({ x, y -> (x.toULong() * y.toULong()).shr(32).toUInt() }),
+    MULHSU({ x, y -> (x.toInt().toLong() * y.toLong()).toULong().shr(32).toUInt() }),
     DIV({ x, y -> if (y == 0u) UInt.MAX_VALUE else (x.toInt() / y.toInt()).toUInt() }),
     DIVU({ x, y -> if (y == 0u) UInt.MAX_VALUE else x / y }),
     REM({ x, y -> if (y == 0u) x else (x.toInt() % y.toInt()).toUInt() }),

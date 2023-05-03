@@ -15,7 +15,7 @@
         <sift>
             <appender name="FILE-${simulationName}" class="ch.qos.logback.core.FileAppender">
                 <file>${simulationName}.log</file>
-                <immediateFlush>true</immediateFlush>
+                <immediateFlush>false</immediateFlush>
                 <append>false</append>
                 <encoder>
                     <pattern>%msg%n</pattern>

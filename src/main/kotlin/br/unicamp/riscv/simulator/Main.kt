@@ -42,7 +42,12 @@ private suspend fun Path.simulate() {
         val memory = Memory()
 
         val loader = ProgramLoader()
-        val entrypoint = loader.loadProgram(this@simulate, memory)
+        val entrypoint = try {
+            loader.loadProgram(this@simulate, memory)
+        } catch (ex: Exception) {
+            logger.error("Failed to load program $name due to an unexpected error", ex)
+            return@withLogContext
+        }
 
         val registerFile = RegisterFile()
         val logFormatter = LogFormatter()
@@ -54,7 +59,7 @@ private suspend fun Path.simulate() {
             val cycles = processor.execute(entrypoint)
             logger.info("Program $name finished in $cycles cycles")
         } catch (ex: Exception) {
-            logger.error("Failed to run program $name due to an unexpected exception", ex)
+            logger.error("Failed to run program $name due to an unexpected error", ex)
         }
     }
 }

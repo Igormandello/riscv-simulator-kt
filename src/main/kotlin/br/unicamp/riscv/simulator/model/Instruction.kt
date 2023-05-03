@@ -5,7 +5,7 @@ import br.unicamp.riscv.simulator.hardware.RegisterFile
 
 sealed interface Instruction {
     fun execute(registerFile: RegisterFile, memory: Memory)
-    fun disassembly(): Disassembly
+    fun disassembly(pc: Word): Disassembly
 
     val cycleCount: Int
         get() = 1
@@ -19,7 +19,7 @@ data class LoadUpperImmediate(val rd: XRegister, val imm: UInt) : Instruction {
         registerFile[PC] += IALIGN
     }
 
-    override fun disassembly() = Disassembly("LUI", rd.name, imm)
+    override fun disassembly(pc: Word) = Disassembly("LUI", rd.name, imm)
 
     companion object {
         private const val IMM_OFFSET = 12
@@ -32,7 +32,7 @@ data class AddUpperImmediateToPC(val rd: XRegister, val imm: UInt) : Instruction
         registerFile[PC] += IALIGN
     }
 
-    override fun disassembly() = Disassembly("AUIPC", rd.name, imm)
+    override fun disassembly(pc: Word) = Disassembly("AUIPC", rd.name, imm)
 
     companion object {
         private const val IMM_OFFSET = 12
@@ -45,7 +45,9 @@ data class JumpAndLink(val rd: XRegister, val imm: Word) : Instruction {
         registerFile[PC] = registerFile[PC] + imm
     }
 
-    override fun disassembly() = Disassembly("JAL", rd.name, imm.toInt())
+    override fun disassembly(pc: Word): Disassembly {
+        return Disassembly("JAL", rd.name, "0x${(pc + imm).toString(16)}")
+    }
 }
 
 data class JumpAndLinkRegister(val rd: XRegister, val rs1: XRegister, val imm: Word) : Instruction {
@@ -55,7 +57,7 @@ data class JumpAndLinkRegister(val rd: XRegister, val rs1: XRegister, val imm: W
         registerFile[PC] = address
     }
 
-    override fun disassembly() = Disassembly("JALR", rd.name, "${imm.toInt()}($rs1)")
+    override fun disassembly(pc: Word) = Disassembly("JALR", rd.name, "${imm.toInt()}($rs1)")
 }
 
 enum class BranchCondition(val test: (UInt, UInt) -> Boolean) {
@@ -83,7 +85,9 @@ data class ConditionalBranch(
         }
     }
 
-    override fun disassembly() = Disassembly("B${condition.name}", rs1.name, rs2.name, imm.toInt())
+    override fun disassembly(pc: Word): Disassembly {
+        return Disassembly("B${condition.name}", rs1.name, rs2.name, "0x${(pc + imm).toString(16)}")
+    }
 }
 
 enum class LoadKind {
@@ -107,7 +111,7 @@ data class Load(val kind: LoadKind, val rd: XRegister, val rs1: XRegister, val i
         registerFile[PC] += IALIGN
     }
 
-    override fun disassembly() = Disassembly("L${kind}", rd, "${imm.toInt()}($rs1)")
+    override fun disassembly(pc: Word) = Disassembly("L${kind}", rd, "${imm.toInt()}($rs1)")
 }
 
 enum class StoreKind {
@@ -128,7 +132,7 @@ data class Store(val kind: StoreKind, val rs1: XRegister, val rs2: XRegister, va
         registerFile[PC] += IALIGN
     }
 
-    override fun disassembly() = Disassembly("S${kind}", rs2, "${imm.toInt()}($rs1)")
+    override fun disassembly(pc: Word) = Disassembly("S${kind}", rs2, "${imm.toInt()}($rs1)")
 }
 
 enum class BinaryOpKind(val op: (UInt, UInt) -> UInt) {
@@ -163,7 +167,7 @@ data class BinaryOp(
         registerFile[PC] += IALIGN
     }
 
-    override fun disassembly() = Disassembly(kind.name, rd.name, rs1.name, rs2.name)
+    override fun disassembly(pc: Word) = Disassembly(kind.name, rd.name, rs1.name, rs2.name)
 }
 
 data class BinaryOpImmediate(
@@ -178,7 +182,7 @@ data class BinaryOpImmediate(
         registerFile[PC] += IALIGN
     }
 
-    override fun disassembly() = Disassembly(kind.name + "I", rd.name, rs1.name, imm.toInt())
+    override fun disassembly(pc: Word) = Disassembly(kind.name + "I", rd.name, rs1.name, imm.toInt())
 }
 
 private fun slt(signed: Boolean, x: UInt, y: UInt): UInt =
@@ -197,7 +201,7 @@ data class SetIfLessThan(
         registerFile[PC] += IALIGN
     }
 
-    override fun disassembly() = Disassembly("SLT${if (signed) "" else "U"}", rd.name, rs1.name, rs2.name)
+    override fun disassembly(pc: Word) = Disassembly("SLT${if (signed) "" else "U"}", rd.name, rs1.name, rs2.name)
 }
 
 data class SetIfLessThanImmediate(
@@ -212,11 +216,11 @@ data class SetIfLessThanImmediate(
         registerFile[PC] += IALIGN
     }
 
-    override fun disassembly() = Disassembly("SLTI${if (signed) "" else "U"}", rd.name, rs1.name, imm.toInt())
+    override fun disassembly(pc: Word) = Disassembly("SLTI${if (signed) "" else "U"}", rd.name, rs1.name, imm.toInt())
 }
 
 object EBreak : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) = throw EBreakException
 
-    override fun disassembly() = Disassembly("EBREAK", emptyList())
+    override fun disassembly(pc: Word) = Disassembly("EBREAK", emptyList())
 }

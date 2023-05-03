@@ -214,3 +214,9 @@ data class SetIfLessThanImmediate(
 
     override fun disassembly() = Disassembly("SLTI${if (signed) "" else "U"}", rd.name, rs1.name, imm.toInt())
 }
+
+object EBreak : Instruction {
+    override fun execute(registerFile: RegisterFile, memory: Memory) = throw EBreakException
+
+    override fun disassembly() = Disassembly("EBREAK", emptyList())
+}

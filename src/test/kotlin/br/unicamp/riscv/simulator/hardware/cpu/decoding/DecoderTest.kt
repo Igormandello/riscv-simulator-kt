@@ -316,6 +316,10 @@ class DecoderTest : DescribeSpec({
             decodeInstruction(word) shouldBe expected
         }
     }
+
+    describe("EBREAK") {
+        decodeInstruction(0b00000000000100000000000001110011u) shouldBe EBreak
+    }
 })
 
 fun decodeInstruction(word: Word): Instruction = InstructionWord.createInstructionWord(word).decode()

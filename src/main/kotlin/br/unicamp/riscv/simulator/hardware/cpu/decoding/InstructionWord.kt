@@ -26,16 +26,20 @@ abstract class InstructionWord(word: Word) {
     abstract fun decode(): Instruction
 
     companion object {
-        fun createInstructionWord(word: Word): InstructionWord = when (val opcode = word.bitRange(0..6)) {
-            in R_TYPE_OPCODES -> RTypeInstructionWord(word)
-            in I_TYPE_OPCODES -> ITypeInstructionWord(word)
-            in S_TYPE_OPCODES -> STypeInstructionWord(word)
-            in B_TYPE_OPCODES -> BTypeInstructionWord(word)
-            in U_TYPE_OPCODES -> UTypeInstructionWord(word)
-            in J_TYPE_OPCODES -> JTypeInstructionWord(word)
-            else -> throw IllegalArgumentException("Unknown instruction type (0b${opcode.toString(2)})")
-        }
+        fun createInstructionWord(word: Word): InstructionWord =
+            if (word == EBREAK_WORD) {
+                EBreakInstructionWord
+            } else when (val opcode = word.bitRange(0..6)) {
+                in R_TYPE_OPCODES -> RTypeInstructionWord(word)
+                in I_TYPE_OPCODES -> ITypeInstructionWord(word)
+                in S_TYPE_OPCODES -> STypeInstructionWord(word)
+                in B_TYPE_OPCODES -> BTypeInstructionWord(word)
+                in U_TYPE_OPCODES -> UTypeInstructionWord(word)
+                in J_TYPE_OPCODES -> JTypeInstructionWord(word)
+                else -> throw IllegalArgumentException("Unknown instruction type (0b${opcode.toString(2)})")
+            }
 
+        private val EBREAK_WORD = 0x00100073u
         private val BINARY_OP_OPCODE = 0b0110011u
         private val STORE_OPCODE = 0b0100011u
         private val BRANCH_OPCODE = 0b1100011u

@@ -28,7 +28,7 @@ class Processor(private val memory: Memory, private val registerFile: RegisterFi
                 instructionWord.rs1,
                 instructionWord.rs2,
                 fetchedInstruction,
-                instruction.disassembly()
+                instruction.disassembly(pcAddress)
             )
 
             try {

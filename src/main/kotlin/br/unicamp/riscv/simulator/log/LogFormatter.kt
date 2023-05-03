@@ -5,7 +5,7 @@ import br.unicamp.riscv.simulator.model.Disassembly
 import br.unicamp.riscv.simulator.model.Word
 import br.unicamp.riscv.simulator.model.XRegister
 
-class LogFormatter() {
+class LogFormatter {
     fun build(
         registerFile: RegisterFile,
         pcAddress: Word,

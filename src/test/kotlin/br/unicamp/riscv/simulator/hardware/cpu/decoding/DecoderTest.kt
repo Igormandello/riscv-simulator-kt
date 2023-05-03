@@ -326,7 +326,7 @@ fun decodeInstruction(word: Word): Instruction = InstructionWord.createInstructi
 
 data class InstructionDecoding(val word: Word, val instruction: Instruction): WithDataTestName {
     override fun dataTestName(): String {
-        val disassembly = instruction.disassembly()
+        val disassembly = instruction.disassembly(0x0u)
         return word.toString(16).padStart(8, '0') + " = " +
                 disassembly.mnemonic + " " +
                 disassembly.args.joinToString(", ")

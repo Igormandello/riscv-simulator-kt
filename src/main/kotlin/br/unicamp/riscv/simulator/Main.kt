@@ -9,7 +9,6 @@ import br.unicamp.riscv.simulator.log.withLogContext
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
-import java.lang.Exception
 import java.nio.file.Path
 import kotlin.io.path.*
 

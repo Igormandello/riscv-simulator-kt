@@ -1,5 +1,3 @@
-FROM ghcr.io/guibrandt/riscv-gnu-toolchain:rv32im-ilp32 as toolchain
-
 FROM gradle:7.6.1-jdk17-alpine as builder
 WORKDIR /build
 ADD build.gradle.kts gradle.properties settings.gradle.kts ./
@@ -11,15 +9,10 @@ RUN gradle --no-daemon installDist
 
 FROM openjdk:17-bullseye
 
-COPY --from=toolchain /opt/riscv /opt/riscv
-ENV PATH="$PATH:/opt/riscv/bin"
-RUN apt-get update && apt-get install -y make libmpc3 && rm -rf /var/lib/apt/lists/*
-
 COPY --from=builder /build/build/install/riscv-simulator/ /app/
 ENV PATH="$PATH:/app/bin/"
 
+ENV LOG_LEVEL=INFO
+
 WORKDIR /mnt/test
-ENTRYPOINT ["make", "-j", "32", "run", \
-    "CC=riscv64-unknown-elf-gcc", \
-    "OBJCOPY=riscv64-unknown-elf-objcopy", \
-    "SIMULATOR=riscv-simulator"]
+ENTRYPOINT ["riscv-simulator", "*.riscv"]

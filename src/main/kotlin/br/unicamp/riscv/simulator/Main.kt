@@ -3,35 +3,65 @@ package br.unicamp.riscv.simulator
 import br.unicamp.riscv.simulator.hardware.Memory
 import br.unicamp.riscv.simulator.hardware.RegisterFile
 import br.unicamp.riscv.simulator.hardware.cpu.Processor
-import br.unicamp.riscv.simulator.log.Logger
+import br.unicamp.riscv.simulator.loader.ProgramLoader
+import br.unicamp.riscv.simulator.log.LogFormatter
+import br.unicamp.riscv.simulator.log.withLogContext
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import mu.KotlinLogging
 import java.nio.file.Path
 import kotlin.io.path.*
 
 suspend fun main(args: Array<String>) {
-    val path = Path("./")
-    val testFiles = args.flatMap { path.listDirectoryEntries(it) }.sorted()
+    val workingDir = Path("./")
+
+    val simulationFiles = args
+        .asSequence()
+        .flatMap { workingDir.listDirectoryEntries(it).asSequence().map(Path::absolute).map(Path::normalize) }
+        .sorted()
+        .toList()
+
+    logger.debug { "Received command line arguments: ${args.toList()}" }
+    logger.debug { "Found simulations: $simulationFiles" }
 
     coroutineScope {
-        testFiles.forEach {
+        simulationFiles.forEach {
             launch {
                 it.simulate()
             }
         }
     }
+
+    logger.info("Done")
 }
 
 private suspend fun Path.simulate() {
-    println("Processing $name...")
-    val registerFile = RegisterFile()
-    val memory = Memory()
-    val logFileName = parent.resolve("$nameWithoutExtension.log").pathString
-    Logger(registerFile, logFileName).use { logger ->
-        val processor = Processor(memory, registerFile, logger)
-        memory.storeBytes(0x100u, readBytes().toUByteArray().toTypedArray())
+    withLogContext(this) {
+        logger.info("Loading program $name")
 
-        val cycles = processor.execute()
-        println("$name ok, finished in $cycles cycles")
+        val memory = Memory()
+
+        val loader = ProgramLoader()
+        val entrypoint = try {
+            loader.loadProgram(this@simulate, memory)
+        } catch (ex: Exception) {
+            logger.error("Failed to load program $name due to an unexpected error", ex)
+            return@withLogContext
+        }
+
+        val registerFile = RegisterFile()
+        val logFormatter = LogFormatter()
+
+        val processor = Processor(memory, registerFile, logFormatter)
+
+        logger.info("Running program $name")
+        try {
+            val cycles = processor.execute(entrypoint)
+            logger.info("Program $name finished in $cycles cycles")
+        } catch (ex: Exception) {
+            logger.error("Failed to run program $name due to an unexpected error", ex)
+        }
     }
 }
+
+private val logger = KotlinLogging.logger {}

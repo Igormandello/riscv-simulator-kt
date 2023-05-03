@@ -2,6 +2,7 @@ package br.unicamp.riscv.simulator.model
 
 import br.unicamp.riscv.simulator.hardware.Memory
 import br.unicamp.riscv.simulator.hardware.RegisterFile
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
@@ -409,6 +410,17 @@ class InstructionTest : DescribeSpec({
                 it("advances PC") {
                     checkAdvancePC(arbSLTI)
                 }
+            }
+        }
+    }
+
+    describe("EBREAK") {
+        it("throws exception when executed") {
+            val registerFile = RegisterFile()
+            val memory = Memory()
+
+            shouldThrow<EBreakException> {
+                EBreak.execute(registerFile, memory)
             }
         }
     }

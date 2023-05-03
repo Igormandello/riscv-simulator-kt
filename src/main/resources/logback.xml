@@ -1,0 +1,33 @@
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>${LOG_LEVEL}</level>
+        </filter>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} | %8r ns | %highlight(%-5p) %cyan(%X{simulationName:-(root)}) %gray([%c{1}@%t]) %m%n%highlight(%xEx)</pattern>
+        </encoder>
+    </appender>
+    <appender name="simulation-SIFT" class="ch.qos.logback.classic.sift.SiftingAppender">
+        <discriminator class="ch.qos.logback.classic.sift.MDCBasedDiscriminator">
+            <key>simulationName</key>
+            <defaultValue>unknown</defaultValue>
+        </discriminator>
+        <sift>
+            <appender name="FILE-${simulationName}" class="ch.qos.logback.core.FileAppender">
+                <file>${simulationName}.log</file>
+                <immediateFlush>false</immediateFlush>
+                <append>false</append>
+                <encoder>
+                    <pattern>%msg%n</pattern>
+                </encoder>
+            </appender>
+        </sift>
+    </appender>
+    <root level="TRACE">
+        <appender-ref ref="CONSOLE" />
+    </root>
+    <logger name="simulationLogger" level="TRACE">
+        <appender-ref ref="simulation-SIFT" />
+    </logger>
+    <shutdownHook/>
+</configuration>

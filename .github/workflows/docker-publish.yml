@@ -3,6 +3,8 @@ name: Docker publish
 on:
   push:
     branches: [ "main" ]
+    tags:
+      - "*"
 
 jobs:
   docker:
@@ -10,6 +12,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ghcr.io/igormandello/riscv-simulator-kt
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Login to Docker Hub
@@ -22,6 +35,6 @@ jobs:
         with:
           context: .
           push: true
-          tags: igormandello/riscv-simulator-kt:latest
+          tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=registry,ref=igormandello/riscv-simulator-kt:buildcache
           cache-to: type=registry,ref=igormandello/riscv-simulator-kt:buildcache,mode=max

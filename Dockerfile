@@ -15,4 +15,4 @@ ENV PATH="$PATH:/app/bin/"
 ENV LOG_LEVEL=INFO
 
 WORKDIR /mnt/test
-ENTRYPOINT ["riscv-simulator", "*.riscv"]
+ENTRYPOINT ["riscv-simulator"]

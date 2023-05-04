@@ -393,7 +393,7 @@ class InstructionTest : DescribeSpec({
                 }
 
                 val cmp: (UInt, UInt) -> Boolean = if (signed) { x, y -> x.toInt() < y.toInt() }
-                else { x, y -> x < y }
+                else { x, y -> x < y.signExtend(12) }
 
                 it("affects destination register") {
                     checkSetDestRegister(arbSLTI, { it.rd }) { instruction, registerFile, _ ->

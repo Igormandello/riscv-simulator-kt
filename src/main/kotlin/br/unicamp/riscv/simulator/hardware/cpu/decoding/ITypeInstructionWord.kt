@@ -3,7 +3,8 @@ package br.unicamp.riscv.simulator.hardware.cpu.decoding
 import br.unicamp.riscv.simulator.model.*
 
 class ITypeInstructionWord(word: Word) : InstructionWord(word) {
-    private val imm12S: Word = word.bitRange(20..31).signExtend(12)
+    private val imm12: Word = word.bitRange(20..31)
+    private val imm12S: Word get() = imm12.signExtend(12)
 
     override fun decode(): Instruction =
         when (opcode) {
@@ -26,7 +27,7 @@ class ITypeInstructionWord(word: Word) : InstructionWord(word) {
     private fun decodeArithmeticOpWithImmediate(): Instruction =
         when (funct3) {
             0b010u -> SetIfLessThanImmediate(true, rd, rs1, imm12S)
-            0b011u -> SetIfLessThanImmediate(false, rd, rs1, imm12S)
+            0b011u -> SetIfLessThanImmediate(false, rd, rs1, imm12)
             0b001u ->
                 if (funct7 == 0u) {
                     BinaryOpImmediate(BinaryOpKind.SLL, rd, rs1, shamt)

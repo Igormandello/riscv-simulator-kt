@@ -212,7 +212,7 @@ data class SetIfLessThanImmediate(
 ) : Instruction {
     override fun execute(registerFile: RegisterFile, memory: Memory) {
         val x = registerFile[rs1]
-        registerFile[rd] = slt(signed, x, imm)
+        registerFile[rd] = slt(signed, x, if (signed) imm else imm.signExtend(12))
         registerFile[PC] += IALIGN
     }
 

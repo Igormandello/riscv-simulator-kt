@@ -310,7 +310,7 @@ class DecoderTest : DescribeSpec({
             ),
             InstructionDecoding(
                 0b111111010110_10100_011_00101_0010011u,
-                SetIfLessThanImmediate(false, XRegister(5), XRegister(20), 0b111111010110u)
+                SetIfLessThanImmediate(false, XRegister(5), XRegister(20), 0b11111111111111111111111111010110u)
             ),
         ) { (word: Word, expected: Instruction) ->
             decodeInstruction(word) shouldBe expected

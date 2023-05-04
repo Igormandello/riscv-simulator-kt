@@ -13,7 +13,7 @@ Na raíz do projeto, execute (assumindo que os programas de simulação têm a e
 
 Alternativamente, é possível pular o passo de construção da imagem usando uma imagem pré-construída:
 
-    docker run -v ${PWD}/test:/mnt/test ghcr.io/guibrandt/riscv-simulator-kt:1.0.0 -- "*.riscv"
+    docker run -v ${PWD}/test:/mnt/test ghcr.io/guibrandt/riscv-simulator-kt:1.0.1 -- "*.riscv"
 
 O programa gera arquivos de mesmo nome dos arquivos de programa simulados, substituindo a extensão por `.log`.
 

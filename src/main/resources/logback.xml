@@ -4,7 +4,7 @@
             <level>${LOG_LEVEL}</level>
         </filter>
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} | %8r ns | %highlight(%-5p) %cyan(%X{simulationName:-(root)}) %gray([%c{1}@%t]) %m%n%highlight(%xEx)</pattern>
+            <pattern>%d{HH:mm:ss.SSS} | %8r ms | %highlight(%-5p) %cyan(%X{simulationName:-(root)}) %gray([%c{1}@%t]) %m%n%highlight(%xEx)</pattern>
         </encoder>
     </appender>
     <appender name="simulation-SIFT" class="ch.qos.logback.classic.sift.SiftingAppender">
